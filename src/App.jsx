@@ -1,11 +1,13 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import logo from './assets/imagiArte-logo.png';
 
 import SelectField from './components/SelectField';
 import StoryDisplay from './components/StoryDisplay';
 import Illustration from './components/Ilustration';
+import { GoogleGenAI } from '@google/genai';
 
 const personajes = [
 	{ value: 'robot curioso', label: 'Un robot curioso' },
@@ -32,6 +34,7 @@ export default function App() {
 	const [imageUrl, setImageUrl] = useState('');
 	const [loadingStory, setLoadingStory] = useState(false);
 	const [loadingImage, setLoadingImage] = useState(false);
+	const [video, setVideo] = useState(undefined);
 
 	const handleGenerate = () => {
 		if (!personaje || !lugar || !objeto) {
@@ -43,23 +46,50 @@ export default function App() {
 		setImageUrl('');
 		setLoadingImage(false);
 
-	// 	setTimeout(() => {
-	// 		const fakeStory = `
-    //   Érase una vez ${personaje.label} que viajó al ${lugar.label}
-    //   con su ${objeto.label} mágico. ¡Vivieron mil aventuras juntos!
-    //   `.trim();
-	// 		setStory(fakeStory);
-	// 		setLoadingStory(false);
-
-	// 		setLoadingImage(true);
-	// 		setTimeout(() => {
-	// 			setImageUrl('https://via.placeholder.com/400x300.png?text=Ilustración');
-	// 			setLoadingImage(false);
-	// 		}, 1000);
-	// 	}, 1000);
+		// 	setTimeout(() => {
+		// 		const fakeStory = `
+		//   Érase una vez ${personaje.label} que viajó al ${lugar.label}
+		//   con su ${objeto.label} mágico. ¡Vivieron mil aventuras juntos!
+		//   `.trim();
+		// 		setStory(fakeStory);
+		// 		setLoadingStory(false);
 	};
 
-	console.log({ imageUrl })
+	const generateVideo = async (params) => {
+		// const uri = "https://generativelanguage.googleapis.com/v1beta/files/pd9pcqztfwg9:download?alt=media"
+		const apiKey = 'AIzaSyA8kcCIAlEt8BWKFExN3oS91RgsKRTAxV4'; // ¡IMPORTANTE! Pon tu API Key aquí
+		try {
+			const ai = new GoogleGenAI({ apiKey });
+			let operation = await ai.models.generateVideos({
+				model: 'veo-3.0-generate-preview',
+				prompt: params?.prompt,
+			});
+			while (!operation.done) {
+				console.log('Generando...');
+				await new Promise((resolve) => setTimeout(resolve, 10000));
+				operation = await ai.operations.getVideosOperation({
+					operation: operation,
+				});
+			}
+			let uri = operation.response.generatedVideos[0].video.uri;
+			const response = await fetch(uri, {
+				headers: {
+					'x-goog-api-key': apiKey,
+				},
+			});
+			if (!response.ok) {
+				const errorBody = await response.json().catch(() => ({}));
+				throw new Error(`Error en la petición: ${response.status} ${response.statusText}. Detalles: ${JSON.stringify(errorBody)}`);
+			}
+			const videoBlob = await response.blob();
+			const blobUrl = window.URL.createObjectURL(videoBlob);
+
+			setVideo(blobUrl);
+		} catch (error) {
+			console.error('Falló la obtención del video:', error);
+			return null;
+		}
+	};
 
 	return (
 		<motion.div
