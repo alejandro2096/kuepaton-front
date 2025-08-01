@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import SelectField from './components/SelectField';
 import StoryDisplay from './components/StoryDisplay';
 import Illustration from './components/Ilustration';
+import { GoogleGenAI } from "@google/genai";
 
 const personajes = [
   { value: 'robot curioso', label: 'Un robot curioso' },
@@ -66,6 +67,41 @@ export default function App() {
       setLoadingImage(false);
     }
   };
+  
+  const generateVideo = async (params) => {
+      // const videoUri = "https://generativelanguage.googleapis.com/v1beta/files/pd9pcqztfwg9:download?alt=media"
+      const apiKey = 'AIzaSyA8kcCIAlEt8BWKFExN3oS91RgsKRTAxV4'; // ¡IMPORTANTE! Pon tu API Key aquí
+      try {
+          const ai = new GoogleGenAI({apiKey});
+          let operation = await ai.models.generateVideos({
+              model: 'veo-3.0-generate-preview',
+              prompt: params?.prompt,
+          });
+          while (!operation.done) {
+              console.log('Generando...');
+              await new Promise((resolve) => setTimeout(resolve, 10000));
+              operation = await ai.operations.getVideosOperation({
+                  operation: operation,
+              });
+          }
+          let uri = operation.response.generatedVideos[0].video.uri;
+          const response = await fetch(uri, {
+              headers: {
+                  'x-goog-api-key': apiKey,
+              },
+          });
+          if (!response.ok) {
+              const errorBody = await response.json().catch(() => ({}));
+              throw new Error(`Error en la petición: ${response.status} ${response.statusText}. Detalles: ${JSON.stringify(errorBody)}`);
+          }
+          const videoBlob = await response.blob();
+          const blobUrl = window.URL.createObjectURL(videoBlob);
+          return blobUrl;
+      } catch (error) {
+          console.error('Falló la obtención del video:', error);
+          return null;
+      }
+  }
 
   return (
     <motion.div
