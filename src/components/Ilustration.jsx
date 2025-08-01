@@ -1,8 +1,20 @@
 import React from 'react';
+import Lottie from 'lottie-react';
 import { motion } from 'framer-motion';
-
+import loaderAnimation from '../animations/loader.json'; 
 export default function Illustration({ imageUrl, loading }) {
-  if (loading) return <p>Generando ilustración…</p>;
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: 24 }}>
+        <Lottie
+          animationData={loaderAnimation}
+          loop={true}
+          style={{ width: 150, height: 150, margin: '0 auto' }}
+        />
+      </div>
+    );
+  }
+
   if (!imageUrl) return null;
 
   return (
@@ -15,7 +27,11 @@ export default function Illustration({ imageUrl, loading }) {
       <motion.img
         src={imageUrl}
         alt="Ilustración del cuento"
-        style={{ maxWidth: '100%', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+        style={{
+          maxWidth: '100%',
+          borderRadius: 8,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }}
       />
     </motion.div>
   );

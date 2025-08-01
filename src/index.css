@@ -3,14 +3,9 @@
 body {
   margin: 0;
   font-family: 'Nunito', sans-serif;
-  background: #f9fafb;
   color: #111827;
-}
-
-body {
   background: linear-gradient(135deg, #fceef5 0%, #d6f8fa 100%);
 }
-
 
 button {
   transition: background 0.2s ease;
