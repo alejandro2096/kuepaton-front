@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
@@ -32,6 +32,7 @@ export default function App() {
   const [imageUrl, setImageUrl]       = useState('');
   const [loadingStory, setLoadingStory] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
+  const [video, setVideo] = useState(undefined);
 
   const handleGenerate = async () => {
     if (!personaje || !lugar || !objeto) {
@@ -67,9 +68,9 @@ export default function App() {
       setLoadingImage(false);
     }
   };
-  
+
   const generateVideo = async (params) => {
-      // const videoUri = "https://generativelanguage.googleapis.com/v1beta/files/pd9pcqztfwg9:download?alt=media"
+      // const uri = "https://generativelanguage.googleapis.com/v1beta/files/pd9pcqztfwg9:download?alt=media"
       const apiKey = 'AIzaSyA8kcCIAlEt8BWKFExN3oS91RgsKRTAxV4'; // ¡IMPORTANTE! Pon tu API Key aquí
       try {
           const ai = new GoogleGenAI({apiKey});
@@ -96,7 +97,8 @@ export default function App() {
           }
           const videoBlob = await response.blob();
           const blobUrl = window.URL.createObjectURL(videoBlob);
-          return blobUrl;
+
+          setVideo(blobUrl);
       } catch (error) {
           console.error('Falló la obtención del video:', error);
           return null;
@@ -114,6 +116,9 @@ export default function App() {
         background: 'linear-gradient(135deg, #fceef5 0%, #d6f8fa 100%)'
       }}
     >
+      {video? 
+        <video src={video} controls={true}/>
+      : null}
       <motion.h1
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
